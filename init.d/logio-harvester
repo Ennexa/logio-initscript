@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# Startup script for Log.io Harvester
+#
+# chkconfig: - 12 88
+# description:  Log.io Harvester.
+#-----------------------------------------------------
+# Author: Joyce Babu <joyce@ennexa.com>
+# License: http://creativecommons.org/licenses/by/3.0/
+#-----------------------------------------------------
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+PROG="/home/logio/node_modules/log.io/bin/log.io-harvester"
+PIDFILE=/var/run/logio/logio-harvester.pid
+WRAPPERSCRIPT=/usr/local/bin/logio-harvester
+
+start(){
+    
+    if [ -f $PIDFILE ]; then
+        status -p /var/run/logio/logio-harvester.pid "logio-harvester"
+        if [ $? -eq 0 ]; then
+            echo_failure
+            echo
+            exit
+        fi
+    fi
+    
+    echo -n "Starting Log.io Harvester:"
+    # nohup $PROG >$LOGFILE 2>&1 &
+    daemon --pidfile=$PIDFILE --user=logio $WRAPPERSCRIPT
+    
+    RUNNING=$?
+    if [ $RUNNING -eq 0 ]; then
+        echo_success
+    else
+        echo_failure
+    fi
+    echo
+}
+
+
+stop(){
+    PID=`cat /var/run/logio/logio-harvester.pid`;
+    echo -n "Stopping Log.io Harvester:"
+    if [ "x$PID" != "x" ]; then
+        kill $PID;
+    fi
+    RUNNING=`ps ax | grep -v grep | grep -c $PROG`
+        if [ $RUNNING -gt 0 ]; then
+                echo_failure
+        else
+                echo_success
+                rm $PIDFILE
+        fi
+    echo
+}
+
+restart(){
+    stop
+    start
+}
+
+
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart 
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 2
+esac
+

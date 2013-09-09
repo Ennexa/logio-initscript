@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+LOGFILE=/var/log/logio/harvester.log
+# Update the following line with the path to log.io-harvester
+COMMAND=/home/logio/node_modules/log.io/bin/log.io-harvester
+PIDFILE=/var/run/logio/logio-harvester.pid
+
+nohup $COMMAND >> $LOGFILE 2>&1 &
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    echo $! > $PIDFILE
+fi
+exit $STATUS
